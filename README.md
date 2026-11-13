@@ -8,7 +8,7 @@
 ## 관리자 페이지
 
 `admin.html`: 책 목록, 감정별 책 수, 위로·축하 문구, 단어 목록, 데이터 점검을 한눈에 확인하는 관리 페이지입니다.
-- 주소: https://mopnt135.github.io/book/admin.html
+- 주소: https://maeum-book-mopnt.web.app/admin.html
 
 ## 검색·공유 설정 (SEO)
 
@@ -16,3 +16,9 @@
 - `og-image.png`: 링크를 공유할 때 보이는 썸네일 (1200×630)
 - `favicon.svg`: 브라우저 탭 아이콘
 - 관리 페이지(`admin.html`)는 검색 결과에 나오지 않도록 `noindex`를 설정했습니다.
+
+## 배포
+
+- **Firebase Hosting (대표 주소):** https://maeum-book-mopnt.web.app/
+- GitHub Pages (보조): https://mopnt135.github.io/book/
+- Firebase 배포 명령: `firebase deploy --only hosting`
