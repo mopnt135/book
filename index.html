@@ -1,4 +1,28 @@
-<title>마음 책방</title>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>마음 책방 – 오늘 기분에 맞는 책 추천</title>
+<meta name="description" content="지금 마음을 문장이나 표정으로 알려 주세요. 슬픔, 불안, 기쁨 등 8가지 감정에 맞는 책을 사다리 타기로 추천해 드려요.">
+<link rel="canonical" href="https://mopnt135.github.io/book/">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#2f5d7c">
+<!-- 공유 미리보기 (카카오톡, 페이스북, 슬랙 등) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="마음 책방">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="마음 책방 – 오늘 기분에 맞는 책 추천">
+<meta property="og:description" content="지금 마음을 적으면 어울리는 책을 사다리 타기로 골라 드려요.">
+<meta property="og:url" content="https://mopnt135.github.io/book/">
+<meta property="og:image" content="https://mopnt135.github.io/book/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="마음 책방 – 감정 맞춤 책 추천">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="마음 책방 – 오늘 기분에 맞는 책 추천">
+<meta name="twitter:description" content="지금 마음을 적으면 어울리는 책을 사다리 타기로 골라 드려요.">
+<meta name="twitter:image" content="https://mopnt135.github.io/book/og-image.png">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -181,6 +205,8 @@
   @media (prefers-reduced-motion: no-preference) { .msg { animation: in .25s ease-out; } }
   @keyframes in { from { transform: translateY(4px); opacity: .6; } to { transform: none; opacity: 1; } }
 </style>
+</head>
+<body>
 
 <div class="wrap">
   <header>
@@ -850,3 +876,5 @@ input.addEventListener("compositionend", () => {
   if (pendingEnter) { pendingEnter = false; setTimeout(send, 0); }
 });
 </script>
+</body>
+</html>
