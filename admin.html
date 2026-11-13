@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마음 책방 관리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1f4; --surface: #ffffff; --bubble: #e3e8ee; --fg: #1d242c; --muted: #5d6874;
+    --line: #d3dae2; --accent: #2f5d7c; --on-accent: #ffffff; --accent-soft: #dbe7f0;
+    --ok: #2a7d4f; --warn: #a3542a;
+    --font-display: "Gowun Batang", "Noto Serif KR", serif;
+    --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14181d; --surface: #1d232a; --bubble: #232b33; --fg: #e6ebf0; --muted: #9aa6b2;
+      --line: #313b45; --accent: #8db7d6; --on-accent: #10161c; --accent-soft: #24384a;
+      --ok: #6cc596; --warn: #f0a070; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14181d; --surface: #1d232a; --bubble: #232b33; --fg: #e6ebf0; --muted: #9aa6b2;
+    --line: #313b45; --accent: #8db7d6; --on-accent: #10161c; --accent-soft: #24384a;
+    --ok: #6cc596; --warn: #f0a070; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 14px; line-height: 1.6; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 24px 16px 64px; }
+  header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px; }
+  h1 { font-family: var(--font-display); font-size: 26px; margin: 0; }
+  header p { margin: 4px 0 0; color: var(--muted); }
+  header a { color: var(--accent); font-weight: 600; text-decoration: none; border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; background: var(--surface); }
+  h2 { font-family: var(--font-display); font-size: 19px; margin: 32px 0 10px; }
+  .muted { color: var(--muted); }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 20px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .stat .k { color: var(--muted); font-size: 12px; }
+  .stat .v { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .bars { display: grid; gap: 8px; }
+  .bar { display: grid; grid-template-columns: 88px 1fr 64px; align-items: center; gap: 10px; }
+  .bar .track { background: var(--bubble); border-radius: 4px; height: 14px; position: relative; overflow: hidden; }
+  .bar .main { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
+  .bar .tagged { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; opacity: .3; }
+  .bar .num { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
+  .legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--accent); margin-right: 4px; vertical-align: -1px; }
+  .legend i.lt { opacity: .3; }
+
+  .tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .tools input, .tools select {
+    padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); font: inherit;
+  }
+  .tools input { flex: 1; min-width: 180px; }
+  .tablewrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; min-width: 720px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; color: var(--muted); font-weight: 600; background: var(--bubble); position: sticky; top: 0; }
+  tr:last-child td { border-bottom: 0; }
+  td.t { font-family: var(--font-display); font-weight: 700; font-size: 15px; white-space: nowrap; }
+  td.why { color: var(--muted); }
+  .chip { display: inline-block; border-radius: 999px; padding: 0 8px; font-size: 12px; margin: 0 4px 4px 0; border: 1px solid var(--line); white-space: nowrap; }
+  .chip.main { color: #fff; border-color: transparent; }
+  .buy a { color: var(--accent); font-size: 12px; margin-right: 6px; white-space: nowrap; }
+  .count { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+  .row { display: grid; grid-template-columns: 88px 1fr; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .row:last-child { border-bottom: 0; }
+  .row .n { font-weight: 600; }
+  .words { display: flex; flex-wrap: wrap; gap: 4px; }
+  .word { background: var(--bubble); border-radius: 4px; padding: 0 6px; font-size: 12px; }
+  ul.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  ul.checks li::before { content: "✓ "; color: var(--ok); font-weight: 700; }
+  ul.checks li.bad::before { content: "! "; color: var(--warn); }
+  ul.checks li.bad { color: var(--warn); }
+  .note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  @media (max-width: 480px) { .bar { grid-template-columns: 72px 1fr 52px; } .row { grid-template-columns: 72px 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>마음 책방 관리</h1>
+      <p>추천 페이지에 들어 있는 책, 감정 태그, 문구, 단어 목록을 한눈에 확인하는 관리자 페이지예요.</p>
+    </div>
+    <a href="./index.html">추천 페이지로 가기 →</a>
+  </header>
+
+  <section class="stats" id="stats"></section>
+
+  <h2>감정별 책 수</h2>
+  <div class="card">
+    <div class="legend"><span><i></i>대표 감정</span><span><i class="lt"></i>태그로 함께 맞는 책</span></div>
+    <div class="bars" id="bars"></div>
+  </div>
+
+  <h2>책 목록</h2>
+  <div class="tools">
+    <input id="q" type="search" placeholder="제목, 지은이, 줄거리로 찾기">
+    <select id="emo"><option value="">모든 감정</option></select>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>#</th><th>제목 · 지은이</th><th>감정 태그</th><th>이럴 때 읽어요</th><th>구매</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="count" id="count"></div>
+
+  <h2>위로·축하 기본 문구</h2>
+  <div class="card" id="presets"></div>
+
+  <h2>단어 목록</h2>
+  <div class="grid2">
+    <div class="card">
+      <b>감정 찾기 단어</b> <span class="muted">(탭 1 단어 비교)</span>
+      <div id="syn"></div>
+    </div>
+    <div class="card">
+      <b>위기 신호 단어</b> <span class="muted">(입력 시 상담 전화 안내)</span>
+      <div class="words" id="crisis" style="margin-top:8px"></div>
+      <div style="margin-top:16px"><b>한마디 차단 단어</b> <span class="muted">(AI 문구 검사)</span></div>
+      <div class="words" id="bad" style="margin-top:8px"></div>
+    </div>
+  </div>
+
+  <h2>데이터 점검</h2>
+  <div class="card"><ul class="checks" id="checks"></ul></div>
+  <p class="note">이 페이지의 데이터는 index.html에서 그대로 가져와 만들었어요. 추천 페이지의 책이나 단어를 바꾸면 이 관리 페이지도 함께 다시 만들어야 해요.</p>
+</div>
+
+<script>
+// ───── index.html에서 가져온 데이터 ─────
+const EMO = {
+  "슬픔":  { e: "😢", c: "#46607f" },
+  "외로움": { e: "😔", c: "#5a5d7c" },
+  "불안":  { e: "😰", c: "#5f7150" },
+  "분노":  { e: "😠", c: "#93453a" },
+  "무기력": { e: "😩", c: "#76664f" },
+  "기쁨":  { e: "😊", c: "#a87425" },
+  "사랑":  { e: "🥰", c: "#9b4b69" },
+  "후회":  { e: "😣", c: "#456b66" }
+};
+
+const BOOKS = {
+  "슬픔": [
+    ["긴긴밤", "루리", "코뿔소 노든과 어린 펭귄이 바다를 찾아 함께 먼 길을 떠나는 이야기예요.", "상실을 서둘러 지우지 않고 곁에 머물러 주는 이야기가 필요할 때"],
+    ["아침의 피아노", "김진영", "철학자가 암 선고를 받은 뒤 세상을 떠나기 전까지 남긴 짧은 메모를 묶은 산문집이에요.", "슬픔 속에서도 사랑을 말하는 문장을 읽고 싶을 때"],
+    ["어린 왕자", "앙투안 드 생텍쥐페리", "사막에 불시착한 비행사가 작은 별에서 온 왕자를 만나 그의 여행 이야기를 들어요.", "이별과 관계의 의미를 조용히 돌아보고 싶을 때"],
+    ["나의 라임 오렌지나무", "J. M. 바스콘셀로스", "가난한 집 다섯 살 소년 제제가 라임 오렌지나무, 뽀르뚜가 아저씨와 우정을 나누며 슬픔을 알게 되는 이야기예요.", "마음껏 울고 나서 조금 가벼워지고 싶을 때"],
+    ["모리와 함께한 화요일", "미치 앨봄", "루게릭병으로 죽음을 앞둔 옛 스승을 매주 화요일 찾아가 나눈 인생 수업을 기록했어요.", "떠나보낸 사람을 따뜻하게 기억하고 싶을 때"],
+    ["바깥은 여름", "김애란", "갑작스러운 상실을 겪은 사람들의 이후의 시간을 담은 단편소설집이에요.", "내 슬픔을 이해받는 느낌이 필요할 때"]
+  ],
+  "외로움": [
+    ["불편한 편의점", "김호연", "서울역 노숙인 독고가 동네 편의점 야간 아르바이트를 하며 손님들과 조금씩 이어지는 이야기예요.", "누군가와 연결되어 있다는 온기가 필요할 때"],
+    ["달러구트 꿈 백화점", "이미예", "잠든 사람들만 갈 수 있는 꿈 백화점에 취직한 페니가 손님들의 꿈을 만나는 판타지예요.", "혼자인 밤에 가볍게 위로받고 싶을 때"],
+    ["나미야 잡화점의 기적", "히가시노 게이고", "폐가가 된 잡화점에 숨어든 세 청년에게 과거에서 고민 편지가 도착해요.", "누군가 내 이야기를 들어 줬으면 할 때"],
+    ["어서 오세요, 휴남동 서점입니다", "황보름", "회사를 그만둔 영주가 동네에 작은 서점을 열고 사람들과 천천히 관계를 맺어 가요.", "느슨하지만 다정한 관계가 그리울 때"],
+    ["밝은 밤", "최은영", "이혼 후 바닷가 도시로 내려간 지연이 할머니를 만나 4대에 걸친 여성들의 이야기를 들어요.", "가족과 연결된 내 뿌리를 느끼고 싶을 때"],
+    ["스토너", "존 윌리엄스", "평범한 대학 교수 스토너의 조용하고 외로운 일생을 담담하게 그려요.", "외로움도 삶의 한 모습이라고 받아들이고 싶을 때"]
+  ],
+  "불안": [
+    ["불안", "알랭 드 보통", "사회적 지위에 대한 불안이 어디서 오는지 철학, 예술, 종교에서 답을 찾는 에세이예요.", "내 불안의 정체를 차분히 이해하고 싶을 때"],
+    ["미움받을 용기", "기시미 이치로, 고가 후미타케", "철학자와 청년의 대화로 아들러 심리학을 쉽게 풀어낸 책이에요.", "남의 시선 때문에 마음이 불편할 때"],
+    ["월든", "헨리 데이비드 소로", "월든 호숫가 오두막에서 2년여 동안 홀로 단순하게 살며 쓴 기록이에요.", "마음의 속도를 늦추고 싶을 때"],
+    ["죽음의 수용소에서", "빅터 프랭클", "나치 수용소에서 살아남은 정신과 의사가 극한 상황에서도 삶의 의미를 찾는 법을 이야기해요.", "흔들리는 상황에서 붙잡을 의미가 필요할 때"],
+    ["데미안", "헤르만 헤세", "소년 싱클레어가 데미안을 만나 혼란을 지나 자기 자신을 찾아가는 성장소설이에요.", "앞날이 막막하고 내가 누구인지 헷갈릴 때"],
+    ["호밀밭의 파수꾼", "J. D. 샐린저", "학교에서 쫓겨난 열여섯 살 홀든이 뉴욕을 떠돌며 보낸 며칠의 이야기예요.", "어디에도 속하지 못한 느낌이 들 때"]
+  ],
+  "분노": [
+    ["화", "틱낫한", "화를 억누르지 않고 알아차리고 돌보는 마음챙김 방법을 알려 줘요.", "화를 어떻게 다뤄야 할지 모를 때"],
+    ["아몬드", "손원평", "감정을 잘 느끼지 못하는 소년 윤재가 거친 친구 곤이를 만나 달라져 가는 이야기예요.", "감정을 한 걸음 떨어져 보고 싶을 때"],
+    ["감정수업", "강신주", "스피노자가 정리한 48가지 감정을 문학 작품과 함께 하나씩 살펴봐요.", "내 감정에 이름을 붙여 정리하고 싶을 때"],
+    ["비폭력대화", "마셜 B. 로젠버그", "상대를 비난하지 않고 내 감정과 필요를 말하는 대화법을 알려 줘요.", "화난 마음을 말로 잘 전하고 싶을 때"],
+    ["몬테크리스토 백작", "알렉상드르 뒤마", "누명을 쓰고 갇혔던 에드몽 당테스가 탈출해 복수를 이뤄 가는 이야기예요.", "억울한 마음을 이야기 속에서 시원하게 풀고 싶을 때"],
+    ["분노의 포도", "존 스타인벡", "대공황 시기 땅을 잃은 조드 가족이 일자리를 찾아 캘리포니아로 떠나는 이야기예요.", "부당함에 대한 분노를 깊이 들여다보고 싶을 때"]
+  ],
+  "무기력": [
+    ["모모", "미하엘 엔데", "회색 신사들에게 시간을 빼앗긴 사람들을 소녀 모모가 구해 내는 이야기예요.", "바쁘게만 살다 지쳐 버렸을 때"],
+    ["아주 작은 습관의 힘", "제임스 클리어", "아주 작은 습관을 매일 쌓아 큰 변화를 만드는 방법을 알려 줘요.", "아주 작은 것부터 다시 시작하고 싶을 때"],
+    ["연금술사", "파울로 코엘료", "양치기 산티아고가 꿈에서 본 보물을 찾아 이집트 피라미드로 떠나는 여정이에요.", "잃어버린 꿈과 의욕을 다시 떠올리고 싶을 때"],
+    ["노인과 바다", "어니스트 헤밍웨이", "84일 동안 고기를 잡지 못한 늙은 어부가 거대한 청새치와 사투를 벌여요.", "포기하고 싶은 마음을 버티고 싶을 때"],
+    ["피로사회", "한병철", "성과를 강요하는 사회가 왜 사람을 지치게 만드는지 짚어 주는 철학 에세이예요.", "내 지침이 내 탓만은 아니라는 걸 알고 싶을 때"],
+    ["꽃을 보듯 너를 본다", "나태주", "짧고 다정한 시들을 모은 시집이에요.", "긴 글을 읽을 힘조차 없을 때"]
+  ],
+  "기쁨": [
+    ["꾸뻬 씨의 행복 여행", "프랑수아 를로르", "정신과 의사 꾸뻬가 행복의 비밀을 찾아 세계를 여행하며 배운 것을 적어 가요.", "지금의 기쁨을 오래 간직하고 싶을 때"],
+    ["빨강 머리 앤", "루시 모드 몽고메리", "고아 소녀 앤이 초록 지붕 집에 입양되어 밝고 엉뚱하게 자라는 이야기예요.", "작은 일에도 설레는 에너지를 나누고 싶을 때"],
+    ["행복의 기원", "서은국", "진화심리학으로 사람이 왜, 언제 행복을 느끼는지 쉽게 설명해요.", "행복이 무엇인지 궁금해질 때"],
+    ["오베라는 남자", "프레드릭 배크만", "까칠한 홀아비 오베가 시끄러운 이웃들 덕분에 다시 살아갈 이유를 찾아가요.", "웃음과 감동을 함께 느끼고 싶을 때"],
+    ["키다리 아저씨", "진 웹스터", "고아원에서 자란 주디가 얼굴 모를 후원자에게 편지를 쓰며 대학 생활을 해 나가요.", "기분 좋은 하루를 더 반짝이게 하고 싶을 때"],
+    ["언어의 온도", "이기주", "일상에서 마주친 말과 글에 담긴 온기를 짧게 기록한 에세이예요.", "좋은 기분을 차분하게 음미하고 싶을 때"]
+  ],
+  "사랑": [
+    ["오만과 편견", "제인 오스틴", "엘리자베스와 다아시가 오해와 자존심을 넘어 서로를 알아 가는 이야기예요.", "설렘과 밀당을 즐기고 싶을 때"],
+    ["너의 췌장을 먹고 싶어", "스미노 요루", "같은 반 사쿠라의 투병 일기를 우연히 본 '나'가 그녀와 특별한 시간을 보내요.", "짧지만 깊은 관계의 의미를 느끼고 싶을 때"],
+    ["사랑의 기술", "에리히 프롬", "사랑은 저절로 오는 감정이 아니라 배우고 연습하는 기술이라고 말해요.", "사랑을 오래 지키는 법이 궁금할 때"],
+    ["위대한 개츠비", "F. 스콧 피츠제럴드", "옛 연인 데이지를 되찾기 위해 화려한 파티를 여는 개츠비의 이야기예요.", "사랑의 열정과 허무를 함께 느끼고 싶을 때"],
+    ["소나기", "황순원", "시골 소년과 서울에서 온 소녀의 짧고 순수한 만남을 그린 단편이에요.", "풋풋한 첫 설렘을 떠올리고 싶을 때"],
+    ["노르웨이의 숲", "무라카미 하루키", "대학생 와타나베가 나오코와 미도리 사이에서 겪는 사랑과 상실의 청춘 이야기예요.", "사랑의 기쁨과 아픔을 함께 느끼고 싶을 때"]
+  ],
+  "후회": [
+    ["미드나잇 라이브러리", "매트 헤이그", "삶과 죽음 사이의 도서관에서 노라가 다른 선택을 했던 삶들을 하나씩 살아 봐요.", "그때 다르게 했다면 하는 생각이 떠나지 않을 때"],
+    ["남아 있는 나날", "가즈오 이시구로", "늙은 집사 스티븐스가 짧은 여행을 하며 지나온 삶과 놓친 마음을 돌아봐요.", "지나간 선택을 담담히 정리하고 싶을 때"],
+    ["연을 쫓는 아이", "할레드 호세이니", "어린 시절 친구 하산을 배신한 아미르가 어른이 되어 속죄의 길에 나서요.", "바로잡고 싶은 과거가 있을 때"],
+    ["이반 일리치의 죽음", "레프 톨스토이", "죽음을 앞둔 판사 이반 일리치가 자신이 살아온 삶을 되돌아봐요.", "앞으로 어떻게 살지 다시 생각하고 싶을 때"],
+    ["엄마를 부탁해", "신경숙", "서울역에서 엄마를 잃어버린 가족이 엄마를 찾으며 미처 몰랐던 엄마의 삶을 마주해요.", "가족에게 못다 한 마음이 남아 있을 때"],
+    ["아버지의 해방일지", "정지아", "빨치산 출신 아버지의 장례식 사흘 동안 딸이 몰랐던 아버지를 새롭게 알아가요.", "그리운 사람을 다시 이해하고 싶을 때"]
+  ]
+};
+
+const TAGS = {
+  "긴긴밤": ["슬픔", "외로움"],
+  "아침의 피아노": ["슬픔", "사랑"],
+  "어린 왕자": ["슬픔", "외로움", "사랑"],
+  "나의 라임 오렌지나무": ["슬픔", "외로움"],
+  "모리와 함께한 화요일": ["슬픔", "후회"],
+  "바깥은 여름": ["슬픔", "무기력"],
+  "불편한 편의점": ["외로움", "무기력"],
+  "달러구트 꿈 백화점": ["외로움", "불안"],
+  "나미야 잡화점의 기적": ["외로움", "후회", "불안"],
+  "어서 오세요, 휴남동 서점입니다": ["외로움", "무기력"],
+  "밝은 밤": ["외로움", "슬픔"],
+  "스토너": ["외로움", "후회", "무기력"],
+  "불안": ["불안"],
+  "미움받을 용기": ["불안", "외로움"],
+  "월든": ["불안", "무기력"],
+  "죽음의 수용소에서": ["불안", "슬픔", "무기력"],
+  "데미안": ["불안", "외로움"],
+  "호밀밭의 파수꾼": ["불안", "외로움", "분노"],
+  "화": ["분노", "불안"],
+  "아몬드": ["분노", "외로움"],
+  "감정수업": ["분노", "슬픔"],
+  "비폭력대화": ["분노", "사랑"],
+  "몬테크리스토 백작": ["분노"],
+  "분노의 포도": ["분노", "슬픔"],
+  "모모": ["무기력", "불안"],
+  "아주 작은 습관의 힘": ["무기력", "후회"],
+  "연금술사": ["무기력", "불안"],
+  "노인과 바다": ["무기력", "외로움"],
+  "피로사회": ["무기력", "불안"],
+  "꽃을 보듯 너를 본다": ["무기력", "사랑", "슬픔"],
+  "꾸뻬 씨의 행복 여행": ["기쁨"],
+  "빨강 머리 앤": ["기쁨", "사랑", "외로움"],
+  "행복의 기원": ["기쁨"],
+  "오베라는 남자": ["기쁨", "외로움", "슬픔"],
+  "키다리 아저씨": ["기쁨", "사랑"],
+  "언어의 온도": ["기쁨", "무기력"],
+  "오만과 편견": ["사랑", "기쁨"],
+  "너의 췌장을 먹고 싶어": ["사랑", "슬픔"],
+  "사랑의 기술": ["사랑", "외로움"],
+  "위대한 개츠비": ["사랑", "후회"],
+  "소나기": ["사랑", "슬픔"],
+  "노르웨이의 숲": ["사랑", "슬픔", "외로움"],
+  "미드나잇 라이브러리": ["후회", "무기력", "불안"],
+  "남아 있는 나날": ["후회", "사랑"],
+  "연을 쫓는 아이": ["후회", "슬픔"],
+  "이반 일리치의 죽음": ["후회", "불안"],
+  "엄마를 부탁해": ["후회", "슬픔"],
+  "아버지의 해방일지": ["후회", "슬픔"]
+};
+
+const CRISIS_WORDS = ["죽고싶", "죽고 싶", "자살", "죽어버리", "죽어 버리", "사라지고싶", "사라지고 싶", "살기싫", "살기 싫",
+  "살고싶지않", "살고 싶지 않", "끝내고싶", "끝내고 싶", "자해", "극단적선택", "극단적 선택", "목숨을끊", "목숨을 끊",
+  "사라질래", "사라져버리고", "없어지고싶", "없어지고 싶", "죽을래", "살아서뭐해", "살아서 뭐해", "살아서뭐하", "그만살고", "그만 살고"];
+
+const BAD_WORDS = ["시발", "씨발", "ㅅㅂ", "병신", "개새", "좆", "꺼져", "닥쳐", "미친놈", "미친년", "죽어", "자살", "http", "www", "규칙", "지시", "프롬프트", "시스템"];
+
+const SYNONYMS = {
+  "슬픔": ["슬픔", "슬퍼", "슬프", "우울", "눈물", "상실", "이별"],
+  "외로움": ["외로", "고독", "쓸쓸", "혼자"],
+  "불안": ["불안", "걱정", "초조", "긴장", "두려", "무서"],
+  "분노": ["분노", "화나", "화가", "짜증", "억울", "열받"],
+  "무기력": ["무기력", "힘들", "힘드", "힘듦", "지침", "지쳐", "피곤", "번아웃", "의욕", "귀찮"],
+  "기쁨": ["기쁨", "기뻐", "행복", "신나", "즐거"],
+  "사랑": ["사랑", "설렘", "설레", "연애", "짝사랑"],
+  "후회": ["후회", "미련", "그리움", "그리워", "아쉬"]
+};
+
+const POSITIVE = ["기쁨", "사랑"];
+
+const PRESET = {
+  "슬픔": ["많이 힘들었죠. 오늘은 울어도 괜찮아요.", "슬픈 마음, 그대로 두어도 괜찮아요."],
+  "외로움": ["당신은 생각보다 혼자가 아니에요.", "오늘 밤은 책이 곁에 있어 줄게요."],
+  "불안": ["괜찮아요. 한 걸음씩이면 충분해요.", "걱정보다 당신은 더 단단해요."],
+  "분노": ["화날 만했어요. 그 마음 알아요.", "숨 한 번 크게 쉬어 볼까요."],
+  "무기력": ["오늘은 쉬어 가도 괜찮아요.", "아무것도 안 해도 괜찮은 날이에요."],
+  "후회": ["그때의 당신도 최선을 다했어요.", "지난 일보다 지금의 당신이 소중해요."],
+  "기쁨": ["좋은 일이 생겼군요! 축하해요!", "그 기쁨, 오래오래 누리세요!"],
+  "사랑": ["설레는 마음, 정말 축하해요!", "사랑하는 마음이 참 예뻐요!"]
+};
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const NAMES = Object.keys(EMO);
+const ALL = Object.entries(BOOKS).flatMap(([main, list]) => list.map(b => ({ b, main, tags: TAGS[b[0]] || [main] })));
+
+// 요약
+const synCount = Object.values(SYNONYMS).reduce((s, a) => s + a.length, 0);
+const multi = ALL.filter(x => x.tags.length >= 2).length;
+document.getElementById("stats").innerHTML = [
+  ["전체 책", ALL.length + "권"], ["감정 종류", NAMES.length + "개"], ["여러 감정에 맞는 책", multi + "권"],
+  ["감정 찾기 단어", synCount + "개"], ["위기 신호 단어", CRISIS_WORDS.length + "개"]
+].map(([k, v]) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+
+// 감정별 책 수
+const maxTagged = Math.max(...NAMES.map(n => ALL.filter(x => x.tags.includes(n)).length));
+document.getElementById("bars").innerHTML = NAMES.map(n => {
+  const main = ALL.filter(x => x.main === n).length;
+  const tagged = ALL.filter(x => x.tags.includes(n)).length;
+  return `<div class="bar"><span>${EMO[n].e} ${n}</span>
+    <div class="track"><div class="tagged" style="width:${tagged / maxTagged * 100}%;background:${EMO[n].c}"></div>
+    <div class="main" style="width:${main / maxTagged * 100}%;background:${EMO[n].c}"></div></div>
+    <span class="num">${main} / ${tagged}권</span></div>`;
+}).join("");
+
+// 책 목록
+const sel = document.getElementById("emo");
+sel.innerHTML += NAMES.map(n => `<option value="${n}">${EMO[n].e} ${n}</option>`).join("");
+function shop(t) {
+  const q = encodeURIComponent(t);
+  return `<a href="https://search.kyobobook.co.kr/search?keyword=${q}" target="_blank" rel="noopener">교보</a>` +
+    `<a href="https://www.yes24.com/Product/Search?domain=ALL&query=${q}" target="_blank" rel="noopener">YES24</a>` +
+    `<a href="https://www.aladin.co.kr/search/wsearchresult.aspx?SearchTarget=All&SearchWord=${q}" target="_blank" rel="noopener">알라딘</a>`;
+}
+function render() {
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  const e = sel.value;
+  const rows = ALL.filter(x => (!e || x.tags.includes(e)) &&
+    (!q || x.b.slice(0, 3).join(" ").toLowerCase().includes(q)));
+  document.getElementById("tbody").innerHTML = rows.map((x, i) => `<tr>
+    <td class="muted">${i + 1}</td>
+    <td><div class="t">${esc(x.b[0])}</div><div class="muted">${esc(x.b[1])}</div></td>
+    <td>${x.tags.map((t, j) => `<span class="chip ${j === 0 ? "main" : ""}" style="${j === 0 ? `background:${EMO[t].c}` : ""}">${EMO[t].e} ${t}</span>`).join("")}</td>
+    <td class="why">${esc(x.b[3])}</td>
+    <td class="buy">${shop(x.b[0])}</td></tr>`).join("") ||
+    `<tr><td colspan="5" class="muted">조건에 맞는 책이 없어요.</td></tr>`;
+  document.getElementById("count").textContent = `${rows.length}권 표시 중 (전체 ${ALL.length}권)`;
+}
+document.getElementById("q").addEventListener("input", render);
+sel.addEventListener("change", render);
+render();
+
+// 문구
+document.getElementById("presets").innerHTML = NAMES.map(n => `<div class="row">
+  <span class="n">${EMO[n].e} ${n}<br><span class="muted" style="font-weight:400;font-size:12px">${POSITIVE.includes(n) ? "축하" : "위로"}</span></span>
+  <div>${PRESET[n].map(m => `<div>“${esc(m)}”</div>`).join("")}</div></div>`).join("");
+
+// 단어
+document.getElementById("syn").innerHTML = NAMES.map(n => `<div class="row"><span class="n">${EMO[n].e} ${n}</span>
+  <div class="words">${SYNONYMS[n].map(w => `<span class="word">${esc(w)}</span>`).join("")}</div></div>`).join("");
+document.getElementById("crisis").innerHTML = CRISIS_WORDS.map(w => `<span class="word">${esc(w)}</span>`).join("");
+document.getElementById("bad").innerHTML = BAD_WORDS.map(w => `<span class="word">${esc(w)}</span>`).join("");
+
+// 점검
+const titles = ALL.map(x => x.b[0]);
+const dup = titles.filter((t, i) => titles.indexOf(t) !== i);
+const noTag = titles.filter(t => !TAGS[t]);
+const orphan = Object.keys(TAGS).filter(t => !titles.includes(t));
+const wrongMain = ALL.filter(x => TAGS[x.b[0]] && TAGS[x.b[0]][0] !== x.main).map(x => x.b[0]);
+const badTag = Object.entries(TAGS).filter(([, ts]) => ts.some(t => !NAMES.includes(t))).map(([t]) => t);
+const few = NAMES.filter(n => ALL.filter(x => x.tags.includes(n)).length < 6);
+const noPreset = NAMES.filter(n => !PRESET[n] || !PRESET[n].length);
+const noSyn = NAMES.filter(n => !SYNONYMS[n] || !SYNONYMS[n].length);
+const checks = [
+  [dup.length === 0, "제목이 겹치는 책 없음", "제목이 겹치는 책: " + dup.join(", ")],
+  [noTag.length === 0, "모든 책에 감정 태그가 있음", "태그가 없는 책: " + noTag.join(", ")],
+  [orphan.length === 0, "목록에 없는 책의 태그 없음", "목록에 없는 책의 태그: " + orphan.join(", ")],
+  [wrongMain.length === 0, "대표 감정과 첫 번째 태그가 모두 일치", "대표 감정과 첫 태그가 다른 책: " + wrongMain.join(", ")],
+  [badTag.length === 0, "태그가 모두 8가지 감정 안에 있음", "알 수 없는 감정 태그가 있는 책: " + badTag.join(", ")],
+  [few.length === 0, "감정마다 사다리 후보 6권 이상 확보", "후보가 6권보다 적은 감정: " + few.join(", ")],
+  [noPreset.length === 0, "감정마다 위로·축하 문구가 있음", "문구가 없는 감정: " + noPreset.join(", ")],
+  [noSyn.length === 0, "감정마다 찾기 단어가 있음", "찾기 단어가 없는 감정: " + noSyn.join(", ")]
+];
+document.getElementById("checks").innerHTML = checks.map(([ok, good, bad]) => `<li class="${ok ? "" : "bad"}">${esc(ok ? good : bad)}</li>`).join("");
+</script>
+</body>
+</html>
