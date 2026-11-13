@@ -20,5 +20,5 @@
 ## 배포
 
 - **Firebase Hosting (대표 주소):** https://maeum-book-mopnt.web.app/
-- GitHub Pages (보조): https://mopnt135.github.io/book/
+- 자동배포: main 브랜치에 올리면 GitHub Actions가 Firebase Hosting에 자동으로 배포합니다.
 - Firebase 배포 명령: `firebase deploy --only hosting`
